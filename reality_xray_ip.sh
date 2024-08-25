@@ -26,28 +26,15 @@ checkSystem() {
         exit 1
     fi
 
-    res=`which yum 2>/dev/null`
+    res=`which apk 2>/dev/null`
     if [[ "$?" != "0" ]]; then
-        res=`which apt 2>/dev/null`
-        if [[ "$?" != "0" ]]; then
-            colorEcho $RED " 不受支持的Linux系统"
-            exit 1
-        fi
-        PMT="apt"
-        CMD_INSTALL="apt install -y "
-        CMD_REMOVE="apt remove -y "
-        CMD_UPGRADE="apt update; apt upgrade -y; apt autoremove -y"
-    else
-        PMT="yum"
-        CMD_INSTALL="yum install -y "
-        CMD_REMOVE="yum remove -y "
-        CMD_UPGRADE="yum update -y"
-    fi
-    res=`which systemctl 2>/dev/null`
-    if [[ "$?" != "0" ]]; then
-        colorEcho $RED " 系统版本过低，请升级到最新版本"
+        colorEcho $RED " 不受支持的Linux系统"
         exit 1
     fi
+    PMT="apk"
+    CMD_INSTALL="apk add --no-cache"
+    CMD_REMOVE="apk del"
+    CMD_UPGRADE="apk update && apk upgrade"
 }
 
 status() {
@@ -62,16 +49,16 @@ status() {
         return
     fi
     port=`grep -o '"port": [0-9]*' $CONFIG_FILE | awk '{print $2}' | head -n 1`
-	if [[ -n "$port" ]]; then
-        res=`ss -ntlp| grep ${port} | grep xray`
+    if [[ -n "$port" ]]; then
+        res=`ss -ntlp | grep ${port} | grep xray`
         if [[ -z "$res" ]]; then
             echo 2
         else
             echo 3
         fi
-	else
-	    echo 2
-	fi
+    else
+        echo 2
+    fi
 }
 
 statusText() {
@@ -89,25 +76,17 @@ statusText() {
     esac
 }
 
-
-
 preinstall() {
     $PMT clean all
-    [[ "$PMT" = "apt" ]] && $PMT update
     echo ""
     echo "安装必要软件，请等待..."
-    if [[ "$PMT" = "apt" ]]; then
-		res=`which ufw 2>/dev/null`
-        [[ "$?" != "0" ]] && $CMD_INSTALL ufw
-	fi	
-    res=`which curl 2>/dev/null`
-    [[ "$?" != "0" ]] && $CMD_INSTALL curl
-    res=`which openssl 2>/dev/null`
-    [[ "$?" != "0" ]] && $CMD_INSTALL openssl
-	res=`which qrencode 2>/dev/null`
-    [[ "$?" != "0" ]] && $CMD_INSTALL qrencode
-	res=`which jq 2>/dev/null`
-    [[ "$?" != "0" ]] && $CMD_INSTALL jq
+    $CMD_INSTALL curl
+    $CMD_INSTALL openssl
+    $CMD_INSTALL jq
+    $CMD_INSTALL qrencode
+
+    # Alpine 没有 ufw，所以这一部分可以省略或替换为其他防火墙工具
+    # $CMD_INSTALL ufw
 
     if [[ -s /etc/selinux/config ]] && grep 'SELINUX=enforcing' /etc/selinux/config; then
         sed -i 's/SELINUX=enforcing/SELINUX=permissive/g' /etc/selinux/config
@@ -127,7 +106,7 @@ random_website() {
         "www.amd.com"
         "www.apple.com"
         "music.apple.com"
-        "www.amazon.com"		
+        "www.amazon.com"        
         "www.fandom.com"
         "tidal.com"
         "zoro.to"
@@ -141,7 +120,7 @@ random_website() {
         "www.leercapitulo.com"
         "www.sky.com"
         "itunes.apple.com"
-        "download-installer.cdn.mozilla.net"	
+        "download-installer.cdn.mozilla.net"    
     )
 
     total_domains=${#domains[@]}
