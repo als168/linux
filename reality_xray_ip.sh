@@ -156,7 +156,7 @@ random_website() {
 installXray() {
     echo ""
     echo "正在安装Xray..."
-    bash -c "$(curl -s -L https://github.com/als168/Xray-install/raw/main/install-release.sh)" > /dev/null 2>&1
+    bash -c "$(curl -s -L https://github.com/als168/Xray-install/raw/blob/main/install-release.sh)" > /dev/null 2>&1
 	colorEcho $BLUE "xray内核已安装完成"
 	sleep 5
 }
@@ -165,7 +165,7 @@ installXray() {
 updateXray() {
     echo ""
     echo "正在更新Xray..."
-    bash -c "$(curl -s -L https://github.com/als168/Xray-install/raw/main/install-release.sh)" > /dev/null 2>&1
+    bash -c "$(curl -s -L https://github.com/als168/Xray-install/blob/main/install-release.sh)" > /dev/null 2>&1
 	colorEcho $BLUE "xray内核已更新完成"
 	sleep 5
 }
@@ -177,7 +177,7 @@ removeXray() {
 	#systemctl disable xray > /dev/null 2>&1
 	#rm -rf /etc/systemd/system/xray*
 	#rm /usr/local/bin/xray
-    bash -c "$(curl -s -L https://github.com/als168/Xray-install/raw/main/install-release.sh)" @ remove --purge > /dev/null 2>&1
+    bash -c "$(curl -s -L https://github.com/als168/Xray-install/blob/main/install-release.sh)" @ remove --purge > /dev/null 2>&1
     rm -rf /etc/systemd/system/xray.service > /dev/null 2>&1
     rm -rf /etc/systemd/system/xray@.service > /dev/null 2>&1
     rm -rf /usr/local/bin/xray > /dev/null 2>&1
