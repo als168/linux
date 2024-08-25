@@ -12,9 +12,9 @@ NAME="xray"
 CONFIG_FILE="/usr/local/etc/${NAME}/config.json"
 SERVICE_FILE="/etc/systemd/system/${NAME}.service"
 DEFAULT_START_PORT=10000                      
-IP_ADDRESSES=($(hostname -I))
+IP_ADDRESSES=($(hostname -i))  # 使用 -i 以适配 Alpine
 declare -a USER_UUID PORT USER_NAME PRIVATE_KEY PUBLIC_KEY USER_DEST USER_SERVERNAME USER_SID LINK
-	
+
 colorEcho() {
     echo -e "${1}${@:2}${PLAIN}"
 }
@@ -35,6 +35,12 @@ checkSystem() {
     CMD_INSTALL="apk add --no-cache"
     CMD_REMOVE="apk del"
     CMD_UPGRADE="apk update && apk upgrade"
+    
+    res=`which systemctl 2>/dev/null`
+    if [[ "$?" != "0" ]]; then
+        colorEcho $RED " 系统版本过低，请升级到最新版本"
+        exit 1
+    fi
 }
 
 status() {
@@ -77,16 +83,12 @@ statusText() {
 }
 
 preinstall() {
-    $PMT clean all
     echo ""
     echo "安装必要软件，请等待..."
-    $CMD_INSTALL curl
-    $CMD_INSTALL openssl
-    $CMD_INSTALL jq
-    $CMD_INSTALL qrencode
+    $CMD_INSTALL curl openssl jq qrencode
 
-    # Alpine 没有 ufw，所以这一部分可以省略或替换为其他防火墙工具
-    # $CMD_INSTALL ufw
+    # 删除 apk 缓存以减少磁盘使用
+    rm -rf /var/cache/apk/*
 
     if [[ -s /etc/selinux/config ]] && grep 'SELINUX=enforcing' /etc/selinux/config; then
         sed -i 's/SELINUX=enforcing/SELINUX=permissive/g' /etc/selinux/config
@@ -129,7 +131,6 @@ random_website() {
     # 输出选择的域名
     echo "${domains[random_index]}"
 }
-
 
 # 安装 Xray内核
 installXray() {
